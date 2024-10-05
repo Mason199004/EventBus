@@ -91,6 +91,11 @@ public class EventBus(string Name)
         }
     }
 
+    public bool Unregister(object subscriber)
+    {
+        return SubscriberClasses.Remove(subscriber);
+    }
+
     private void InvokeHandlers(IEvent @event, ConcurrentBag<MethodInfo> handlers)
     {
         foreach (var methodInfo in handlers)
