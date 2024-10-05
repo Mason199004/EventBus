@@ -1,6 +1,7 @@
 ﻿namespace EventBus;
 
-public class SubscribeEvent
+[AttributeUsage(AttributeTargets.Method)]
+public class SubscribeEvent : Attribute
 {
     
 }
