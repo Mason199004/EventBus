@@ -1,4 +1,4 @@
-﻿namespace EventBus;
+﻿namespace MHEventBus;
 
 public interface IEvent : IDisposable
 {

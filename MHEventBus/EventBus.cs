@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace EventBus;
+namespace MHEventBus;
 
 public class EventBus(string Name)
 {
@@ -173,7 +173,7 @@ public class EventBus(string Name)
         Handlers.Clear();
         Parallel.ForEach(SubscriberClasses, subscriber =>
         {
-            var subscribers = subscriber.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            var subscribers = subscriber.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
                 .Where(m => m.GetCustomAttributes(typeof(SubscribeEvent), false).Any());
             foreach (var methodInfo in subscribers)
             {
@@ -205,7 +205,7 @@ public class EventBus(string Name)
         
         Parallel.ForEach(StaticSubscribers, subscriber =>
         {
-            var subscribers = subscriber.GetMethods(BindingFlags.Public | BindingFlags.Static)
+            var subscribers = subscriber.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(m => m.GetCustomAttributes(typeof(SubscribeEvent), false).Any());
             foreach (var methodInfo in subscribers)
             {
@@ -266,6 +266,15 @@ public class EventBus(string Name)
         RegisterEvent(typeof(RegisterEventTypesEvent));
         ProcessRegistrants();
         PushEvent(new RegisterEventTypesEvent(this));
+    }
+
+    public void ShutDown()
+    {
+        HasStarted = false;
+        SubscriberClasses.Clear();
+        StaticSubscribers.Clear();
+        Handlers.Clear();
+        EventTypes.Clear();
     }
     
     public class RegisterEventTypesEvent(EventBus Bus) : IEvent

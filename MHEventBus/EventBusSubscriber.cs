@@ -1,4 +1,4 @@
-﻿namespace EventBus;
+﻿namespace MHEventBus;
 [AttributeUsage(AttributeTargets.Class)]
 public class EventBusSubscriber(string eventBusName) : Attribute
 {
