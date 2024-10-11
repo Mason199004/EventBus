@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Reflection;
 
 namespace MHEventBus;
@@ -29,8 +30,9 @@ public class EventBus(string Name)
             if (@params.Length == 1)
             {
                 var parameterType = @params[0].ParameterType;
-                if (parameterType.IsAssignableTo(typeof(IEvent)) && EventTypes.Contains(parameterType))
+                if (parameterType.IsAssignableTo(typeof(IEvent)))
                 {
+                    if (!EventTypes.Contains(parameterType)) EventTypes.Add(parameterType);
                     lock (Handlers)
                     {
                         if (Handlers.ContainsKey(parameterType))
@@ -68,8 +70,9 @@ public class EventBus(string Name)
                 if (@params.Length == 1)
                 {
                     var parameterType = @params[0].ParameterType;
-                    if (parameterType.IsAssignableTo(typeof(IEvent)) && EventTypes.Contains(parameterType))
+                    if (parameterType.IsAssignableTo(typeof(IEvent)))
                     {
+                        if (!EventTypes.Contains(parameterType)) EventTypes.Add(parameterType);
                         lock (Handlers)
                         {
                             if (Handlers.ContainsKey(parameterType))
@@ -98,7 +101,7 @@ public class EventBus(string Name)
 
     private void InvokeHandlers(IEvent @event, ConcurrentBag<MethodInfo> handlers)
     {
-        foreach (var methodInfo in handlers)
+        foreach (var methodInfo in handlers.OrderBy(t => t.GetCustomAttributes<SubscribeEvent>().First().Priority))
         {
             var owner = SubscriberClasses.Any(s => s.GetType() == methodInfo.DeclaringType)
                 ? SubscriberClasses.Where(s => s.GetType() == methodInfo.DeclaringType)
@@ -111,14 +114,28 @@ public class EventBus(string Name)
             {
                 foreach (var staticOwner in staticOwners) 
                 {
-                    methodInfo.Invoke(staticOwner, [@event]);
+                    if (!@event.IsCancelled)
+                    {
+                        methodInfo.Invoke(staticOwner, [@event]);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
             else
             {
                 foreach (var o in owner) 
-                { 
-                    methodInfo.Invoke(o, [@event]);
+                {
+                    if (!@event.IsCancelled)
+                    {
+                        methodInfo.Invoke(o, [@event]);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -183,6 +200,7 @@ public class EventBus(string Name)
                     var parameterType = @params[0].ParameterType;
                     if (parameterType.IsAssignableTo(typeof(IEvent)))
                     {
+                        if (!EventTypes.Contains(parameterType)) EventTypes.Add(parameterType);
                         lock (Handlers)
                         {
                             if (Handlers.ContainsKey(parameterType))
@@ -215,6 +233,7 @@ public class EventBus(string Name)
                     var parameterType = @params[0].ParameterType;
                     if (parameterType.IsAssignableTo(typeof(IEvent)))
                     {
+                        if (!EventTypes.Contains(parameterType)) EventTypes.Add(parameterType);
                         lock (Handlers)
                         {
                             if (Handlers.ContainsKey(parameterType))
@@ -248,24 +267,13 @@ public class EventBus(string Name)
         StaticSubscribers.Clear();
         StaticSubscribers.AddRange(types);
     }
-
-    private void RegisterEvent(Type eventType)
-    {
-        EventTypes.Add(eventType);
-    }
-
-    private void RegisterEvents(IEnumerable<Type> eventTypes)
-    {
-        EventTypes.AddRange(eventTypes);
-    }
+    
 
     public void StartUp()
     {
         HasStarted = true;
         DiscoverStaticSubscribers();
-        RegisterEvent(typeof(RegisterEventTypesEvent));
         ProcessRegistrants();
-        PushEvent(new RegisterEventTypesEvent(this));
     }
 
     public void ShutDown()
@@ -275,38 +283,5 @@ public class EventBus(string Name)
         StaticSubscribers.Clear();
         Handlers.Clear();
         EventTypes.Clear();
-    }
-    
-    public class RegisterEventTypesEvent(EventBus Bus) : IEvent
-    {
-
-        public void RegisterEvent(Type ev) 
-        {
-            if (!ev.IsAssignableTo(typeof(IEvent)))
-            {
-                throw new ArgumentException($"Unable to register an event {ev.FullName} that is not an event");
-            }
-            
-            Bus.RegisterEvent(ev);
-        }
-
-        public void RegisterEvents(IEnumerable<Type> events)
-        {
-            var eventTypes = events as Type[] ?? events.ToArray();
-            foreach (var @event in eventTypes)
-            {
-                if (!@event.IsAssignableTo(typeof(IEvent)))
-                {
-                    throw new ArgumentException($"Unable to register an event {@event.FullName} that is not an event");
-                }
-            }
-            
-            Bus.RegisterEvents(eventTypes);
-        }
-        
-        public void Dispose()
-        {
-            //nothing
-        }
     }
 }

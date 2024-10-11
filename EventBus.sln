@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MHEventBus", "MHEventBus\MHEventBus.csproj", "{A52235C4-CEE5-4F5C-A3B3-FF64D1E8C65C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MHEventBus.Tests", "MHEventBus.Tests\MHEventBus.Tests.csproj", "{941689B9-3EF4-4498-B838-3EAFFB6FB16C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{A52235C4-CEE5-4F5C-A3B3-FF64D1E8C65C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A52235C4-CEE5-4F5C-A3B3-FF64D1E8C65C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A52235C4-CEE5-4F5C-A3B3-FF64D1E8C65C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{941689B9-3EF4-4498-B838-3EAFFB6FB16C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{941689B9-3EF4-4498-B838-3EAFFB6FB16C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{941689B9-3EF4-4498-B838-3EAFFB6FB16C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{941689B9-3EF4-4498-B838-3EAFFB6FB16C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
